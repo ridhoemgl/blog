@@ -1,21 +1,23 @@
-
 process.env.DB_TEST="TEST"
 const User = require('../models/user')
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const app = require('../app');
 const expect = chai.expect;
+const hashPassword = require('../helpers/hashPassword')
+
 
 chai.use(chaiHttp);
 
+let userObj = {}
+
 describe('User', function() {
-    let userObj = {}
     
     beforeEach(function(done) {
         User.create({
-            name: 'test',
-            email: 'test@mail.com',
-            password: '123'
+            name: 'aaa',
+            email: 'aaa@mail.com',
+            password: hashPassword('123')
         })
         .then(user => {
             userObj = user
@@ -27,7 +29,7 @@ describe('User', function() {
         User.deleteMany(function (err) {
             if(err){
                 console.log(err)
-            }
+            }    
             done()
          });
     })
@@ -52,7 +54,7 @@ describe('User', function() {
     it('SIGN UP on /users/signup (POST)', function(done) {
         chai.request(app)
             .post('/users/signup')
-            .send({ name: 'test3', email: 'test1@mail.com', password: '123' })
+            .send({ name: userObj.name, email: userObj.email, password: userObj.password })
             .end(function(err, res) {
                 expect(res).to.have.status(201)
                 done()
@@ -65,10 +67,10 @@ describe('User', function() {
             .end(function(err, res) {
                 expect(res).to.have.status(200)
                 expect(res.body).to.have.property('user')
+                expect(res.body.user).to.have.property('name')
+                expect(res.body.user).to.have.property('email')
+                expect(res.body.user).to.have.property('password')
                 expect(res.body.user).to.be.a('object')
-                expect(res.body.user.name).to.equal('test')
-                expect(res.body.user.email).to.equal('test@mail.com')
-                expect(res.body.user.password).to.equal('123')
                 done()
             })
     })
@@ -90,4 +92,51 @@ describe('User', function() {
             })
     })
 
+})
+
+describe('Article', function() {
+    it('CREATE ARTICLE /articles/add (POST)', function(done) {
+        chai.request(app)
+            .post('/articles/add')
+            .send({ userId: `${userObj._id}`, title:'THIS IS TITLE', description:'THIS IS DESCRIPTION' })
+            .end(function(err, res) {
+                expect(res).to.have.status(201)
+                done()
+            })
+
+    });
+    it('DISPLAY ALL ARTICLES /articles (GET)', function(done) {
+        chai.request(app)
+            .get('/articles')
+            .end(function(err, res) {
+                expect(res).to.have.status(200)
+                done()
+            })
+    });
+    it('DISPLAY USER ARTICLE /articles/:id (GET)', function(done) {
+        chai.request(app)
+            .get('/articles')
+            .send({id: '5b9fb8008a303119fca608b8'})
+            .end(function(err, res) {
+                expect(res).to.have.status(200)
+                done()
+            })
+    });
+    it('EDIT USER ARTICLE /articles/:id (GET)', function(done) {
+        chai.request(app)
+            .put(`/articles/5b9fb8008a303119fca608ba`)
+            .send({ title: 'updatedTitle' })
+            .end(function(err, res) {
+                expect(res).to.have.status(200)
+                done()
+            })
+    });
+    it('DELETE USER ARTICLE /articles/:id (GET)', function(done) {
+        chai.request(app)
+            .delete(`/articles/5b9fb8008a303119fca608ba`)
+            .end(function(err, res) {
+                expect(res).to.have.status(200)
+                done()
+            })
+    });
 })

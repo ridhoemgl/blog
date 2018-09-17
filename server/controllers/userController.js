@@ -1,4 +1,6 @@
 const User = require('../models/user')
+const hashPassword = require('../helpers/hashPassword')
+
 
 module.exports = {
     signupUser: (req, res)  => {
@@ -6,7 +8,7 @@ module.exports = {
             .create({
                 name: req.body.name,
                 email: req.body.email,
-                password: req.body.password
+                password: hashPassword(req.body.password)
             })
             .then(user => {
                 res.status(201).json({
