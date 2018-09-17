@@ -2,7 +2,6 @@ const User = require('../models/user')
 
 module.exports = {
     signupUser: (req, res)  => {
-        
         User
             .create({
                 name: req.body.name,
@@ -44,6 +43,72 @@ module.exports = {
                     }) 
                 }
                 
+            })
+            .catch(err => {
+                res.status(500).json({
+                    msg: err.message
+                })
+            })
+    },
+    getAllUsers: (req, res) => {
+        User
+            .find()
+            .then(users => {
+                res.status(200).json({
+                    users
+                })
+            })
+            .catch(err => {
+                res.status(500).json({
+                    msg: err.message
+                })
+            })
+    },
+    getUser: (req, res) => {
+        User
+            .find({
+                _id: req.params.id
+            })
+            .then(user => {
+                res.status(200).json({
+                    user
+                })
+            })
+            .catch(err => {
+                res.status(500).json({
+                    msg: err.message
+                })
+            })
+    },
+    editUser: (req, res) => {
+        User
+            .findOneAndUpdate({
+                _id: req.params.id
+            },{
+                $set:{
+                    name: req.body.name
+                }
+            })
+            .then(() => {
+                res.status(200).json({
+                    msg: 'update user success',
+                })
+            })
+            .catch(err => {
+                res.status(500).json({
+                    msg: err.message
+                })
+            })
+    },
+    deleteUser: (req, res) => {
+        User
+            .findOneAndDelete({
+                _id: req.params.id
+            })
+            .then(() => {
+                res.status(200).json({
+                    msg: 'delete user success',
+                })
             })
             .catch(err => {
                 res.status(500).json({
